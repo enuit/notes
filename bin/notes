@@ -8,7 +8,8 @@ _normal=`tput sgr0`
 _glob="@"
 name=notes
 
-
+CONF_FOLDER="${HOME}/.config/notes"
+CONF_FILE="${CONF_FOLDER}/env.sh"
 
 # directories and imports
 # --------------------------------------------------
@@ -26,9 +27,15 @@ DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 rootdir=$(dirname "${DIR}") # up from bin to root directory
 
 # import user-defined variables
-source "${rootdir}/_config/env.sh"
+if [ ! -f $CONF_FILE ]; then
+     mkdir -p "${CONF_FOLDER}"
+     cp "${rootdir}/_config/env.sh" $CONF_FILE
+fi
+source "${CONF_FILE}" 
+
 # import helpers
-source "${rootdir}/_helpers/helpers.sh"
+HELPERS=${rootdir}/_helpers/helpers.sh 
+source "${HELPERS}"
 # attempt to cd into notes directory
 cd "${_dir}" 2>/dev/null; dir=`pwd -P`; cd "${dir}"
 
@@ -96,7 +103,7 @@ while getopts "$optstring" opt; do
     # open notes directory
     # ------------------------------
     O)
-      open .
+      $FILE_BROWSER .
       exit 0
     ;;
 
@@ -125,7 +132,7 @@ while getopts "$optstring" opt; do
     n)
       checkname "$OPTARG"
       mkdir -p $(dirname "$OPTARG${_ext}") && touch "$OPTARG${_ext}"
-      open "$OPTARG${_ext}"
+      $TEXT_EDITOR "$OPTARG${_ext}"
       exit 0
     ;;
 
@@ -168,12 +175,15 @@ while getopts "$optstring" opt; do
     ;;
 
     f)
-      egrep -ri $OPTARG .
+      #egrep -ri $OPTARG .
+      echo $_dir
+      $SEARCHER $OPTARG $_dir 
       exit 0
     ;;
 
     F)
-      egrep -ril $OPTARG .
+      #egrep -ril $OPTARG .
+      $SEARCHER $OPTARG $_dir 
       exit 0
     ;;
 
@@ -214,8 +224,8 @@ if [ -z "$2" ]; then
     previewnotes $1
     exit 0
   fi
-
-  open $1${_ext}
+  DIR_OPEN=$_dir$1${_ext}
+  $MDVIEWER $DIR_OPEN
   exit 0
 fi
 
